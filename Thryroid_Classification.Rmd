@@ -1,0 +1,1043 @@
+---
+title: "Thyroid Class Classification"
+author: "Ayomi Upeksha"
+date: "2023-09-15"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<!--loading the Required packeges-->
+```{r ,echo=FALSE,comment=NA, message=FALSE,eval=TRUE}
+library(tidyverse)
+library(magrittr)
+library(MLDataR)
+library(skimr)
+library(naniar)
+library(writexl)
+library(patchwork)
+library(GGally)
+library(corrplot)
+library(ggstatsplot) # Required dplyr >= 1.1.3
+#library(dplyr)
+library(cowplot)
+library(tidymodels)
+library(caret)
+library(yardstick) # For ROC/AUC curves
+library(ranger) # random Forest
+library(caret) # For Confusion Matrix
+#library(randomForest) # To get importance variables
+library(xgboost) # For XGBoost Algorithm
+library(e1071) # Naive Bayes
+library(kernlab) # SVM
+library(cvms) # To Visualization of confusion Matrix
+
+```
+<p style="font-family: timesNewRomen, serif; font-size:14pt">**1.Inroduction**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Millions of people throughout the world suffer from thyroid conditions, which frequently result in a variety of health problems. For successful treatment and better patient outcomes, thyroid problems must be identified early and correctly diagnosed. Machine learning presents a possible way to improve thyroid illness diagnosis in this era of cutting-edge technology. The goal of this investigation is to use machine learning to create a predictive model that will help medical professionals recognize thyroid diseases quickly and reliably.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The thyroid, a crucial component of the endocrine system, is in charge of regulating metabolism and safeguarding overall health. Thyroid dysfunction, including hyperthyroidism, hypothyroidism, thyroid nodules, and autoimmune illnesses, can have a substantial negative impact on a person's health. Unfortunately, these disorders' modest and occasionally overlapping symptoms make diagnosis challenging.So, determinations must therefore be based on sophisticated, complex data analysis.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The "MLDataR" package in R from the database has been used in this instance. It draws on data from the UCI Machine Learning repository and contains patient records.\
+</p>
+
+<!--Section 02 ----------------------------------------------->
+
+<p style="font-family: timesNewRomen, serif; font-size:14pt">**2. Data Preprocessing**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Data Profiling :</strong>There are 22 categorical variables, 6 numerical variables, and 3772 rows in this dataset. In order to better comprehend the data, the variable definition for this dataset is described below.\
+</p>
+<!--2.1 variable Description ---------------------------------->
+<div style="font-family: 'Times New Roman', serif; font-size: 12pt;">
+  <li>ThryroidClass: Patient's status (sick = 1 or negative=0)</li>
+  <li>patient_age: Age of the patient.</li>
+  <li>patient_gender: Female = 1 & Male = 0</li>
+  <li>presc_thyroxine	:	Whether thyroxine replacement prescribed 1=Thyroxine prescribed</li>
+  <li>queried_why_on_thyroxine	:	Indicate query has been actioned</li>
+  <li>presc_anthyroid_meds	:	Whether anti-thyroid medicine has been prescribed</li>
+  <li>sick	:	Sickness due to thyroxine depletion or over activity</li>
+  <li>pregnant	:	Whether the patient is pregnant</li>
+  <li>thyroid_surgery	:	Whether the patient has had thyroid surgery</li>
+  <li>radioactive_iodine_therapyI131	:	Whether patient has had radioactive iodine treatment:</li>
+  <li>query_hypothyroid	:	Indicate under active thyroid query</li>
+  <li>query_hyperthyroid	:	Indicate over active thyroid query</li>
+  <li>lithium	:	Lithium carbonate administered to decrease the level of thyroid hormones</li>
+  <li>goitre	:	Indicate swelling of the thyroid gland</li>
+  <li>tumor	:	Indicate a tumor</li>
+  <li>hypopituitarism	:	Indicate a diagnosed under active thyroid</li>
+  <li>psych_condition	:	Whether a patient has a psychological condition</li>
+  <li>TSH_measured	:	A TSH level lower than normal indicates there is usually more than enough thyroid hormone in the body and may indicate hyperthyroidism</li>
+  <li>TSH_reading	:	Reading result of the TSH blood test</li>
+  <li>T3_measured	:	Linked to TSH reading - when free triiodothyronine rise above normal this indicates hyperthyroidism</li>
+  <li>T3_reading	:	Reading result of the T3 blood test looking for above normal levels of free triiodothyronine</li>
+  <li>T4_measured	:	Free thyroxine, also known as T4, is used with T3 and TSH tests to diagnose hyperthyroidism</li>
+  <li>T4_reading	:	Reading result of th T4 test</li>
+  <li>thyrox_util_rate_T4U_measured	:	Thyroxine utilisation rate</li>
+  <li>thyrox_util_rate_T4U_reading	:	Result of the test</li>
+  <li>FTI_measured	:	Measurement on the Free Thyroxine Index (FTI)</li>
+  <li>FTI_reading	:	Result of the test mentioned above</li>
+  <li>ref_src	:	Referral source of the patient</li>
+</div>
+
+<!--2.2 Loading the data ---------------------------------->
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE}
+data("thyroid_disease")
+df_1 <- data.frame(thyroid_disease)
+
+# Create a skim summary
+#skim(df_1)
+
+# variables converting
+df_1$ThryroidClass <- as.factor(df_1$ThryroidClass)
+df_1$patient_gender <- as.factor(df_1$patient_gender)
+df_1$presc_thyroxine <- as.factor(df_1$presc_thyroxine)
+df_1$queried_why_on_thyroxine <- as.factor(df_1$queried_why_on_thyroxine)
+df_1$presc_anthyroid_meds <- as.factor(df_1$presc_anthyroid_meds)
+df_1$presc_anthyroid_meds <- as.factor(df_1$presc_anthyroid_meds)
+df_1$sick <- as.factor(df_1$sick)
+df_1$pregnant <- as.factor(df_1$pregnant)
+df_1$thyroid_surgery <- as.factor(df_1$thyroid_surgery)
+df_1$radioactive_iodine_therapyI131 <- as.factor(df_1$radioactive_iodine_therapyI131)
+df_1$query_hypothyroid <- as.factor(df_1$query_hypothyroid)
+df_1$query_hyperthyroid <- as.factor(df_1$query_hyperthyroid)
+df_1$lithium <- as.factor(df_1$lithium)
+df_1$goitre <- as.factor(df_1$goitre)
+df_1$tumor <- as.factor(df_1$tumor)
+df_1$hypopituitarism <- as.factor(df_1$hypopituitarism)
+df_1$psych_condition <- as.factor(df_1$psych_condition)
+df_1$TSH_measured <- as.factor(df_1$TSH_measured)
+df_1$T3_measured <- as.factor(df_1$T3_measured)
+df_1$T4_measured <- as.factor(df_1$T4_measured)
+df_1$thyrox_util_rate_T4U_measured <- as.factor(df_1$thyrox_util_rate_T4U_measured)
+df_1$FTI_measured <- as.factor(df_1$FTI_measured)
+df_1$ref_src <- as.factor(df_1$ref_src)
+
+df_1$patient_age <- round(df_1$patient_age, digits = 0)
+
+
+```
+<!---- Data Cleansing -------------------------------------->
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE}
+# 2.3 Viuslisation of missing value plot
+vis_miss(df_1, warn_large_data = FALSE)
+```
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Data Cleansing :</strong> According to the above missing value visualization figure, It can be seen that, 2% of missing values are exists in TSH_reading, T3_reading, T4_reading, thyrox_util_rate_T4U_reading, FTI_reading and patient_age. Looking carefully at the dataset, it is clear that TSH_reading occurred as a missing value if TSH_measured is zero. For the other four variables, the same procedure applies. There are no important information cannot be generated TSH_measured, T3_measured, T4_measured, thyrox_util_rate_T4U_measured and FTI_measure. Hence, Those records can be eliminated from the dataset.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The dataset size is decreased to 2751 after the elimination process, and variables such as TSH_measured, T3_measured, T4_measured, thyrox_util_rate_T4U_measured, and FTI_measure can also be removed from the dataset due to the elimination of missing values, these variables no longer need the dataset.\
+</p>
+
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE}
+# 2.4 claning NA values - rows elimination
+df_2 <- df_1 %>% filter(.,!is.na(TSH_reading)) #n = 3403
+df_3 <- df_2 %>% filter(.,!is.na(T3_reading)) # n = 2910
+df_4 <- df_3 %>% filter(.,!is.na(T4_reading)) # n=2902
+df_5 <- df_4 %>% filter(.,!is.na(thyrox_util_rate_T4U_reading)) # n=2752
+df_6 <- df_5 %>% filter(.,!is.na(FTI_reading)) # n =2752
+df_7 <- df_6 %>% filter(.,!is.na(patient_age)) # n =2751
+
+# 2.4 Columns elimination
+
+df_8 <- df_7 %>% select(.,c("ThryroidClass","patient_age","patient_gender",
+                            "presc_thyroxine","queried_why_on_thyroxine",
+                            "presc_anthyroid_meds","sick","pregnant",
+                            "thyroid_surgery","radioactive_iodine_therapyI131",
+                            "query_hypothyroid","query_hyperthyroid","lithium",
+                            "goitre","tumor","hypopituitarism","psych_condition",
+                            "TSH_reading","T3_reading","T4_reading",
+                            "thyrox_util_rate_T4U_reading","FTI_reading","ref_src"))
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Data Smoothing :</strong> According to figure 2.1, there are numerous noticeable outliers in the TSH, T3, and T4 levels as well as the Free Thyroxine index. Therefore, without doing a thorough study, such observable outliers cannot be directly eliminated from the dataset.According to the TSH level, an increase of more than 400 is abnormal. Records that exceed TSH level 400 can be eliminated from the dataset.\
+</p>
+
+<!---- Data smoothing -------------------------------------->
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE}
+# Distribution of patient's age
+p1 <- df_8 %>%  
+  ggplot(., aes(x=patient_age)) +
+  geom_boxplot() + xlab("Patient Age") +ylab("")
+
+# Distribution of TSH_reading
+p2 <- df_8 %>%  
+  ggplot(., aes(x=TSH_reading)) +
+  geom_boxplot() + xlab("TSH Value") +ylab("")
+
+# Distribution of T3_reading
+p3 <- df_8 %>%  
+  ggplot(., aes(x=T3_reading)) +
+  geom_boxplot() + xlab("T3 Value") +ylab("")
+
+# Distribution of T4_reading
+p4 <- df_8 %>%  
+  ggplot(., aes(x=T4_reading)) +
+  geom_boxplot() + xlab("T4 Value") +ylab("")
+
+# Distribution of thyrox_util_rate_T4U_reading
+p5 <- df_8 %>%  
+  ggplot(., aes(x=thyrox_util_rate_T4U_reading)) +
+  geom_boxplot() + xlab("Thyroxine utilisation rate") +ylab("")
+
+# Distribution of FTI_reading
+p6 <- df_8 %>%  
+  ggplot(., aes(x=FTI_reading)) +
+  geom_boxplot() + xlab("Free Thyroxine Index") +ylab("")
+
+p_1 <- p1 + p2 + p3 + p4+ p5 + p6
+
+p_1 +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = 'Figure 2.1 One Dimensional Outlier Detection for numerical variables',
+    theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+# 2.5 Outlier removal fo TSH level (Have to implement possible technique)
+
+df_9 <- df_8 %>% filter(.,TSH_reading < 200) # n= 2746
+df_10 <- df_9 %>% filter(.,T3_reading < 8) # n= 2742
+df_11 <- df_10 %>% filter(.,T4_reading < 350) # n= 2740
+df_12 <- df_11 %>% filter(.,FTI_reading < 300) # n = 2738
+
+
+```
+
+<!---- EDA ----------------------------------------------->
+
+<p style="font-family: timesNewRomen, serif; font-size:14pt">**3. Exploratory Data Analysis**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt">**3.1 Distribution of Patient's age, TSH value, T3, T4, Thyroxine utilization rate, Thyroxine Index**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In Figure 3.1, a prominent pattern emerges as we analyze the distributions. The majority of variables display a characteristic centered bell-shaped curve, indicative of a normal distribution. This suggests that data points tend to cluster around the mean, with few outliers. Notably, the distributions of TSH values and T3 values defy this trend. They exhibit positive skewness, signifying an elongated tail on the higher values side. This skewness could imply a higher incidence of health conditions associated with abnormal TSH and T3 levels. Consequently, these skewed distributions may require particular attention in subsequent analyses to identify potential outliers and health-related insights in our dataset.\
+</p>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE}
+
+# 3.1 Distribution of numerical varibles with thyroid class
+
+p7 <- ggplot(df_12,aes(x=patient_age)) + 
+  geom_histogram(colour ='white') + xlab("Patient Age")
+
+p8 <- ggplot(df_12,aes(x=TSH_reading)) + 
+  geom_histogram(colour ='white') + xlab("TSH Value")
+
+p9 <- ggplot(df_12,aes(x=T3_reading)) + 
+  geom_histogram(colour ='white') + xlab("T3 Value")
+
+p10 <- ggplot(df_12,aes(x=T4_reading)) + 
+  geom_histogram(colour ='white') + xlab("T4 Value")
+
+p11 <- ggplot(df_12,aes(x=thyrox_util_rate_T4U_reading)) + 
+  geom_histogram(colour ='white') + xlab("Thyroxine utilisation rate")
+
+p12 <- ggplot(df_12,aes(x=FTI_reading)) + 
+  geom_histogram(colour ='white') + xlab("Free Thyroxine Index")
+
+p_2 <- p7 + p8 + p9 + p10+ p11 + p12
+
+p_2 +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = 'Figure 3.1 Distribution of numerical variables',
+    theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt">**3.2 Distribution of Patient's gender,sickness,pregnant status, Referral source and Hypopituitarism with Thyroid Class**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In light of the multitude of categorical variables in our dataset, it becomes imperative to delve into their relationships with the categorical 'thyroid class' variable. To accomplish this, we embarked on an investigative journey to uncover the intricate web of associations. Our approach involved calculating pairwise Pearson correlation coefficients between these qualitative variables and the 'thyroid class,' which serves as our target variable. This endeavor not only aids in elucidating the interplay between categorical predictors and the thyroid class but also offers valuable insights into which variables might wield significant influence in predicting thyroid disease outcomes. This correlation analysis equips us with the means to discern which categorical attributes may exhibit stronger or weaker connections with the 'thyroid class', thus paving the way for more informed modeling and decision-making in the context of thyroid disease prediction and diagnosis.\
+</p>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+
+# 3.2 Investigate the thyroid class qualitative variables (16)
+
+# Generate pair wise chi square distribution (Extension of mosaic plot)
+
+# Highly correlated variables
+set.seed(3333)
+
+p14 <- ggbarstats( # p = 2.28e-07
+  data = df_12,
+  x = sick,
+  y = ThryroidClass
+) + labs(caption = NULL) # remove caption
+
+p15 <- ggbarstats( #p=0.05
+  data = df_12,
+  x = pregnant,
+  y = ThryroidClass
+) + labs(caption = NULL) # remove caption
+
+p28 <- ggbarstats( # p = 3.32e-46
+  data = df_12,
+  x = ref_src,
+  y = ThryroidClass
+) + labs(caption = NULL) # remove caption
+
+p13 <- ggbarstats( # p =0.20
+  data = df_12,
+  x = patient_gender,
+  y = ThryroidClass
+) + labs(caption = NULL) # remove caption
+
+plot1 <- p14 + p15 + p28 + p13
+
+plot1 +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = 'Figure 3.2.1 Distribution of Thyroid class with Sikness, Referral source,pregnant & gender',theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+p16 <- ggbarstats( # p =0.02
+  data = df_12,
+  x = presc_thyroxine,
+  y = ThryroidClass
+) + labs(caption = NULL) # remove caption
+
+p21 <- ggbarstats( # p = 1.29e-05
+  data = df_12,
+  x = query_hypothyroid,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In Figure 3.2, we discern meaningful correlations between categorical variables and the 'thyroid class.' Notably, 'sickness,' 'pregnant status,' and 'referral source' exhibit pronounced associations with thyroid class. Patients with sickness due to thyroxine depletion represent 11% of thyroid-positive cases, in contrast to 4% in the thyroid-negative group, emphasizing the impact of this condition on thyroid status. Intriguingly, 'pregnant status' does not seem to elevate thyroid disease risk significantly, as indicated by a comparable prevalence in both thyroid-positive and -negative cases. 'Referral source' is a pivotal factor, with 80% of thyroid-positive patients stemming from 'SVI,' compared to 31% from the thyroid-negative class. Notably, other referral categories, including 'SVDH,' 'SVHC,' 'STMW,' and 'other,' do not exert a discernible influence on thyroid-positive cases. Furthermore, 'Whether thyroxine replacement is prescribed' and 'active status under thyroid query' exhibit significant relationships with 'thyroid class,' underscoring their importance in predicting thyroid disease outcomes. These findings offer valuable insights into the multifaceted factors affecting thyroid status, guiding further exploration in thyroid disease analysis.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+While gender status may not exhibit a particularly strong influence on thyroid sickness, an intriguing pattern emerges when we consider the proportions within each category. Notably, 40% of thyroid-positive cases occur, juxtaposed with 36% among negative cases. Similarly, the data for females and males reveal a mirror image of this distribution. This same analytical approach is systematically applied to all other variable pairs, with p-values duly recorded to inform our decision-making process. It is worth noting that these other variable pairs do not exhibit correlations as strong as the previously mentioned variables. In fact, most other qualitative variables do not seem to significantly impact thyroid class status. Nonetheless, it remains prudent to include these variables in our model, as doing so may enhance model accuracy.\
+</p>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+set.seed(3333)
+p18 <- ggbarstats( # p = 0.09
+  data = df_12,
+  x = presc_anthyroid_meds,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p19 <- ggbarstats( # p = 0.08
+  data = df_12,
+  x = thyroid_surgery,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p20 <- ggbarstats( # p = 0.16
+  data = df_12,
+  x = radioactive_iodine_therapyI131,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p22 <- ggbarstats( # p=0.06
+  data = df_12,
+  x = query_hyperthyroid,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p25 <- ggbarstats( # p= 0.18
+  data = df_12,
+  x = tumor,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p27 <- ggbarstats( # p= 0.02
+  data = df_12,
+  x = psych_condition,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p23 <- ggbarstats( # p=0.91
+  data = df_12,
+  x = lithium,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p24 <- ggbarstats( # p=0.62
+  data = df_12,
+  x = goitre,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+p26 <- ggbarstats( # p=6.72e-04
+  data = df_12,
+  x = hypopituitarism,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+```
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+p17 <- ggbarstats( # p= 0.41
+  data = df_12,
+  x = queried_why_on_thyroxine,
+  y = ThryroidClass
+) + labs(caption = NULL) 
+
+plot2 <- p17
+
+plot2 +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = 'Figure 3.2.2 Distribution of Thyroid class with Hypopituitarism and Action status of Quirey',theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Figure 3.3 reveals that the presence or absence of query action does not exhibit any discernible relationship with thyroid class. Both thyroid-positive and negative categories demonstrate an almost identical proportion, with 99% in the 'actioned' status and 1% in the 'not actioned' status. Given this lack of distinction, it is advisable to exclude this variable from subsequent stages of the analysis.\
+</p>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+
+df_13 <- df_12 %>% select(., -(queried_why_on_thyroxine))
+
+```
+
+<!----------- Modeling ------------------------------------>
+<p style="font-family: timesNewRomen, serif; font-size:14pt">**4. Model Building**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Splitting Data:</strong> After preprocessing, the dataset was reduced to 2738 samples and retained 22 columns. To facilitate model building, it was essential to split the dataset into training and testing sets, with an 80% allocation to the training set. Consequently, the training set comprises 2190 samples, while the testing set consists of 548 samples.\
+</p>
+
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+# 4.1 Splitting the dataset
+
+df_14 <- df_13 %>% mutate(id = row_number())
+
+set.seed(123)
+
+train_thy <- df_14 %>% sample_frac(.80) # For training set (n = 2190)
+#dim(train)
+
+test_thy <- anti_join(df_14, train_thy, by = 'id') # For testing set (n=548)
+#dim(test)
+
+```
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Making Recipe:</strong> In the concluding data processing step, we prioritize the normalization of quantitative variables linked to the thyroid class. Figure 3.1 highlights the need for this step, as individual distributions, particularly TSH values and patients' ages, exhibit disparities in their ranges. Normalization is essential to ensure that these variables are on a consistent scale, enabling more effective modeling and analysis.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Model Building:</strong> Multiple models have been constructed and rigorously evaluated for their predictive accuracy, with a primary focus on discussing their distinctive features. The models developed for thyroid prediction encompass:\
+</p>
+
+<div style="font-family: 'Times New Roman', serif; font-size: 12pt;">
+  <li>Random Forest Model</li>
+  <li>Extreme Gradient Boosting (XG Boost)</li>
+  <li>Logistic Regression </li>
+  <li>Naive Bayes Classifier </li>
+  <li>Support Vector Machine </li>
+  <li>FeedFoward Neural Network (FNN) </li>
+</div>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+# 4.2 Creating the recipe
+
+thyroid_recipe <- 
+  recipe(ThryroidClass ~ ., data = train_thy) %>% # Setting the formula
+  step_normalize(all_numeric_predictors()) %>% # Normalize every numeric predictor  
+  step_zv(all_predictors()) %>% # Remove predictors with only one value (they are useless)
+  prep() # Apply the recipe
+
+#thyroid_recipe
+
+# Applying the recipe to training set
+thyroid_training <- juice(thyroid_recipe) #extract the training dataset
+#glimpse(thyroid_training)
+
+# perform the same task on the test test
+thyroid_testing <- thyroid_recipe %>% bake(test_thy) # bake uses for apply the same recipe for test data
+#glimpse(thyroid_testing)
+
+
+```
+
+<!----------- (4.1) Random Forest ------------------------------------>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+## create the model
+
+thyroid_ranger <- rand_forest(tree = 100, mode = 'classification') %>%
+  set_engine("ranger") %>%            #    use the random forest in ranger package
+fit(ThryroidClass ~ ., data = thyroid_training)
+
+# thyroid_ranger
+
+## Prediction for the test test
+Predict_thy_rf <- predict(thyroid_ranger, thyroid_testing)
+
+## Getting the probability of predicted class
+
+prob_ranger_rf <- thyroid_ranger %>%
+  predict(thyroid_testing, type = "prob")
+
+#view(prob_ranger_rf)
+
+##combining the resting data with predicted data
+data_ranger_rf <- thyroid_testing %>% bind_cols(prob_ranger_rf) 
+
+#view(data_ranger_rf)
+
+## Drawing the ROC curve
+
+p30 <- data_ranger_rf %>% roc_curve(ThryroidClass, .pred_negative) %>%
+  autoplot() + 
+  ggtitle("Random Forest") +
+  theme(plot.title = element_text(size = 10))
+
+
+## Creating Confusuion matrix for predicted test data
+
+result_rf <- confusionMatrix(Predict_thy_rf$.pred_class,thyroid_testing$ThryroidClass,
+                mode='everything', positive='sick')
+
+confusion_matrix_rf <- result_rf$table
+#print(confusion_matrix_rf) #Printing the confusion matrix
+
+# Extract and print the accuracy
+accuracy_rf <- result_rf$overall['Accuracy']
+
+# Converting to the dataframe
+confusion_matrix_rf_1 <- as.data.frame(confusion_matrix_rf)
+
+# Converting to a dtaframe
+cfm_rf <- as_tibble(confusion_matrix_rf_1)
+
+# Creating Matrix Plot
+
+pp2 <- plot_confusion_matrix(cfm_rf, 
+                      target_col = "Reference", 
+                      prediction_col = "Prediction",
+                      counts_col = "Freq",
+                      add_normalized = FALSE, # Prioritizing the count
+                      palette = "Greens")+
+  ggtitle("Random Forest") +
+  theme(plot.title = element_text(size = 10))
+
+
+
+```
+
+
+<!----------- (4.2) Boosting Algorithms(XG Boost) ------------------------------------>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+## create the model
+
+thyroid_xgb <- boost_tree() %>%  #XGBoost
+  set_engine(engine = "xgboost") %>%
+  set_mode("classification") %>%
+  fit(ThryroidClass ~ ., data = thyroid_training)
+
+# thyroid_xgb
+
+## Prediction for the test test
+Predict_thy_xgb <- predict(thyroid_xgb, thyroid_testing)
+
+## Getting the probability of predicted class
+
+prob_xgb <- thyroid_xgb %>%
+  predict(thyroid_testing, type = "prob")
+
+
+##combining the resting data with predicted data
+data_xgb <- thyroid_testing %>% bind_cols(prob_xgb) 
+
+
+## Drawing the ROC curve
+
+p31 <- data_xgb %>% roc_curve(ThryroidClass, .pred_negative) %>%
+  autoplot()+
+  ggtitle("XG Boost") +
+  theme(plot.title = element_text(size = 10))
+
+
+## Creating Confusuion matrix for predicted test data
+
+result_xgb <- confusionMatrix(Predict_thy_xgb$.pred_class,thyroid_testing$ThryroidClass,
+                mode='everything', positive='sick')
+
+confusion_matrix_xgb <- result_xgb$table
+#print(confusion_matrix_xgb) #Printing the confusion matrix
+
+# Extract and print the accuracy
+accuracy_xgb <- result_xgb$overall['Accuracy']
+
+# Converting to the dataframe
+confusion_matrix_xgb_1 <- as.data.frame(confusion_matrix_xgb)
+
+# Converting to a dtaframe
+cfm_xgb <- as_tibble(confusion_matrix_xgb_1)
+
+# Creating Matrix Plot
+
+pp3 <- plot_confusion_matrix(cfm_xgb, 
+                      target_col = "Reference", 
+                      prediction_col = "Prediction",
+                      counts_col = "Freq",
+                      add_normalized = FALSE, # Prioritizing the count
+                      palette = "Greens")+
+  ggtitle("XG Boost") +
+  theme(plot.title = element_text(size = 10))
+
+
+```
+
+
+<!----------- (4.3) Logistic Regression ------------------------------------>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+## create the model
+
+thyroid_log <- logistic_reg() %>%  #logistic model
+  set_engine(engine = "glm") %>%
+  set_mode("classification") %>%
+  fit(ThryroidClass ~ ., data = thyroid_training)
+
+# thyroid_log
+
+## Prediction for the test test
+Predict_thy_log <- predict(thyroid_log, thyroid_testing)
+
+## Getting the probability of predicted class
+
+prob_log <- thyroid_log %>%
+  predict(thyroid_testing, type = "prob")
+
+
+##combining the resting data with predicted data
+data_log <- thyroid_testing %>% bind_cols(prob_log) 
+
+
+## Drawing the ROC curve
+
+p33 <- data_log %>% roc_curve(ThryroidClass, .pred_negative) %>%
+  autoplot() +
+   ggtitle("Logistic Regression") +
+  theme(plot.title = element_text(size = 10))
+
+
+## Creating Confusuion matrix for predicted test data
+
+result_log <- confusionMatrix(Predict_thy_log$.pred_class,thyroid_testing$ThryroidClass,
+                mode='everything', positive='sick')
+
+confusion_matrix_log <- result_log$table
+#print(confusion_matrix_log) #Printing the confusion matrix
+
+# Extract and print the accuracy
+accuracy_log <- result_log$overall['Accuracy']
+
+
+# Converting to the dataframe
+confusion_matrix_log_1 <- as.data.frame(confusion_matrix_log)
+
+# Converting to a dtaframe
+cfm_log <- as_tibble(confusion_matrix_log_1)
+
+# Creating Matrix Plot
+
+pp4 <- plot_confusion_matrix(cfm_log, 
+                      target_col = "Reference", 
+                      prediction_col = "Prediction",
+                      counts_col = "Freq",
+                      add_normalized = FALSE, # Prioritizing the count
+                      palette = "Greens")+
+  ggtitle("Logistic Regression") +
+  theme(plot.title = element_text(size = 10))
+
+```
+
+
+<!----------- (4.4) Naive Bayes Classifier ------------------------------------>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+## create the model
+
+set.seed(2022)  # Setting Seed
+
+thyroid_NB <- naiveBayes(ThryroidClass ~ ., data = thyroid_training)
+
+#y_pred_NB <- predict(classifier_NB, newdata = wine_test)
+
+## Prediction for the test test
+Predict_thy_NB <- predict(thyroid_NB, thyroid_testing)
+
+## Getting the probability of predicted class 
+## (Acsess the class probabilities Manually beacuse there is no option for "type = prob")
+
+# Manually calculate class probabilities
+class_probabilities <- t(1 - Predict_thy_NB)
+
+# Add row names for clarity if needed
+row.names(class_probabilities) <- NULL
+
+# Convert to a data frame
+prob_NB <- as.data.frame(class_probabilities)
+
+
+
+##combining the resting data with predicted data
+#data_NB <- thyroid_testing %>% bind_cols(prob_NB) 
+
+
+## Drawing the ROC curve
+
+#p33 <- data_log %>% roc_curve(ThryroidClass, .pred_negative) %>%
+  #autoplot()
+
+
+#p33 +
+  #plot_layout(guide = 'collect') +
+  #plot_annotation(
+    #title = 'ROC curve of predicted negative Thyroid classes - Logistic Regression',
+    #theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+## Creating Confusuion matrix for predicted test data
+
+cm_NB <- table(thyroid_testing$ThryroidClass, Predict_thy_NB)
+result_NB <- confusionMatrix(cm_NB)
+
+confusion_matrix_NB <- result_NB$table
+#print(confusion_matrix_NB) #Printing the confusion matrix
+
+# Extract and print the accuracy
+accuracy_NB <- result_NB$overall['Accuracy']
+
+
+# Converting to the dataframe
+confusion_matrix_NB_1 <- as.data.frame(confusion_matrix_NB)
+
+# Converting to a dtaframe
+cfm_NB <- as_tibble(confusion_matrix_NB_1)
+
+# Creating Matrix Plot
+
+pp6 <- plot_confusion_matrix(cfm_NB, 
+                      target_col = "Var1", 
+                      prediction_col = "Predict_thy_NB",
+                      counts_col = "Freq",
+                      add_normalized = FALSE, # Prioritizing the count
+                      palette = "Greens")+
+  ggtitle("Naive Bayes") +
+  theme(plot.title = element_text(size = 10))
+
+```
+
+<!----------- (4.5) SVM ------------------------------------>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+## create the model
+
+thyroid_svm <- svm_rbf(cost = 0.5) %>%
+  set_engine("kernlab") %>%
+  set_mode("classification") %>%
+  fit(ThryroidClass ~ ., data = thyroid_training)
+
+# thyroid_svm
+
+## Prediction for the test test
+Predict_thy_svm <- predict(thyroid_svm, thyroid_testing)
+
+## Getting the probability of predicted class
+
+prob_svm <- thyroid_svm %>%
+  predict(thyroid_testing, type = "prob")
+
+
+##combining the resting data with predicted data
+data_svm <- thyroid_testing %>% bind_cols(prob_svm) 
+
+
+## Drawing the ROC curve
+
+p34 <- data_svm %>% roc_curve(ThryroidClass, .pred_negative) %>%
+  autoplot()+
+   ggtitle("SVM") +
+  theme(plot.title = element_text(size = 10))
+
+
+
+## Creating Confusuion matrix for predicted test data
+
+result_svm <- confusionMatrix(Predict_thy_svm$.pred_class,thyroid_testing$ThryroidClass,
+                mode='everything', positive='sick')
+
+confusion_matrix_svm <- result_svm$table
+#print(confusion_matrix_svm) #Printing the confusion matrix
+
+# Extract and print the accuracy
+accuracy_svm <- result_svm$overall['Accuracy']
+
+
+# Converting to the dataframe
+confusion_matrix_svm_1 <- as.data.frame(confusion_matrix_svm)
+
+# Converting to a dtaframe
+cfm_svm <- as_tibble(confusion_matrix_svm_1)
+
+# Creating Matrix Plot
+
+pp5 <- plot_confusion_matrix(cfm_svm, 
+                      target_col = "Reference", 
+                      prediction_col = "Prediction",
+                      counts_col = "Freq",
+                      add_normalized = FALSE, # Prioritizing the count
+                      palette = "Greens")+
+  ggtitle("SVM") +
+  theme(plot.title = element_text(size = 10))
+
+```
+
+<!----------- (4.5) ANN ------------------------------------>
+
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE,results='hide'}
+
+library(nnet)
+library(ROCR)
+
+# Create a neural network model specification
+set.seed(456)
+thyroid_NN <- nnet(ThryroidClass ~ ., data = thyroid_training, size = 5, linout = FALSE)
+
+# prdictions for test data
+Predict_thy_NN <- predict(thyroid_NN, newdata = thyroid_testing, type = "class")
+
+# creating ROC curve====Method 01
+
+# coding sick=1 & negative =0"
+#encoded_testing_class <- thyroid_testing$ThryroidClass
+#encoded_testing_class <- ifelse(encoded_testing_class == "sick", 1, 0) #n=529
+
+#Predict_thy_NN_coded <- ifelse(Predict_thy_NN == "sick", 1, 0) #n=529
+
+# Convert ThyroidClass to a factor
+#encoded_testing_class_1 <- as.factor(encoded_testing_class)
+
+# Create a prediction object for ROC curve
+#prediction_obj_NN <- prediction(Predict_thy_NN_coded, encoded_testing_class_1)
+
+# Create an ROC curve object
+#roc_obj_NN <- performance(prediction_obj_NN, "tpr", "fpr")
+
+# Plot the ROC curve
+#plot(roc_obj_NN, main = "ROC Curve for Neural Network Model")
+
+#------------------------------------------------------
+
+
+
+# Creating the confusion Matix
+
+
+cm_NN <- table(thyroid_testing$ThryroidClass, Predict_thy_NN)
+result_NN <- confusionMatrix(cm_NN)
+
+confusion_matrix_NN <- result_NN$table
+
+#confusion_matrix_NN 
+
+# Extract and print the accuracy
+accuracy_NN <- result_NN$overall['Accuracy']
+
+
+# Converting to the dataframe
+confusion_matrix_NN_1 <- as.data.frame(confusion_matrix_NN)
+
+# Converting to a tibble
+cfm_NN <- as_tibble(confusion_matrix_NN_1)
+
+# Creating Matrix Plot
+
+pp7 <- plot_confusion_matrix(cfm_NN, 
+                      target_col = "Var1", 
+                      prediction_col = "Predict_thy_NN",
+                      counts_col = "Freq",
+                      add_normalized = FALSE, # Prioritizing the count
+                      palette = "Greens")+
+  ggtitle("Neural Network") +
+  theme(plot.title = element_text(size = 10))
+
+
+
+
+```
+
+
+<!----------- Plotting the all ROC curves together ------------------------------------>
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+
+pp_1 <- p30 +p31 + p33 + p34
+
+pp_1 +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = '4.1 ROC curves of predicted negative Thyroid classes',
+    theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In Figure 4.1, we observe the ROC curves of the machine learning models developed for thyroid class predictions. Notably, all these curves consistently surpass the baseline centered line at 0.5. This signifies that the area under the curve (AUC) for each model exceeds 0.5, indicating their efficacy in distinguishing between thyroid-positive and thyroid-negative cases. It's worth noting that among the models evaluated, the Logistic Regression model exhibits a relatively lower AUC compared to the other curves, suggesting that while it still demonstrates predictive capability, alternative models may offer superior performance in this context.\
+</p>
+
+
+<!----------- Plotting the COnfusion Matrix Plot together ---------------------------->
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+
+pp_2 <- pp2 +pp3 + pp4 + pp6 + pp5 +pp7
+
+pp_2 +
+  plot_layout(guide = 'collect') +
+  plot_annotation(
+    title = '4.2 Confusion Matrices Visualization',
+    theme = theme(plot.title = element_text(hjust = 0.5, size = 10)))
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+This confusion matrix are presented in figure 4.2, shows the matrix representation of the prediction summary of the thyroid classes. The confusion matrix results of our thyroid classification model showcase its effectiveness in distinguishing between "Negative" and "Sick" thyroid cases.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Random Forest Classifier:</strong>In a more detailed examination of the confusion matrix, It has observed that the model correctly identified 508 cases as "Negative" (true negatives) and 27 cases as "Sick" (true positives). However, there were 11 instances where the model erroneously predicted "Sick" when the actual class was "Negative" (false positives). Additionally, the model misclassified 2 cases as "Negative" when they were actually "Sick" (false negatives). It correctly identified 99.61% of 'Sick' cases (sensitivity) and 71.05% of 'Negative' cases (specificity). The positive predictive value (precision) for 'Sick' cases is 97.88%, with a negative predictive value of 93.10%.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>XG Boost Classifier:</strong>The model correctly identified 508 cases as 'Negative' (true negatives) and 30 cases as 'Sick' (true positives). However, there were 8 instances where the model incorrectly predicted 'Sick' when the actual class was 'Negative' (false positives), and 2 instances where it predicted 'Negative' when the actual class was 'Sick' (false negatives). This performance demonstrates the model's strength in correctly identifying 'Sick' cases, but there is room for improvement in reducing false positives.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Logistic Regression Classifier:</strong>The model correctly identified 508 cases as 'Negative' (true negatives) and 19 cases as 'Sick' (true positives). However, there were 19 instances where the model incorrectly predicted 'Sick' when the actual class was 'Negative' (false positives), and 2 instances where it predicted 'Negative' when the actual class was 'Sick' (false negatives). This performance demonstrates the model's strength in correctly identifying 'Negative' cases while highlighting the need for improvement in reducing false positives for 'Sick' predictions.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>Naive Bayes Classifier:</strong>The model accurately identified 489 cases as 'Negative' (true negatives) and 25 cases as 'Sick' (true positives). However, it also had 21 instances where it incorrectly predicted 'Sick' instead of 'Negative' (false positives) and 13 instances where it predicted 'Negative' instead of 'Sick' (false negatives). While the model excels in correctly identifying 'Negative' cases, there is room for improvement to reduce false positives when predicting 'Sick' cases and enhance overall precision.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong>SVM Classifier:</strong>The model effectively identified 509 cases as 'Negative' (true negatives) and 17 cases as 'Sick' (true positives). Nevertheless, it's important to note that there were 21 instances where the model falsely predicted 'Sick' when the actual class was 'Negative' (false positives), and 1 instance where it predicted 'Negative' when the actual class was 'Sick' (false negatives). While the model exhibits strong performance in correctly identifying 'Negative' cases, there is room for improvement to reduce false positives and enhance precision in predicting 'Sick' cases.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+<strong> Neural Network:</strong> Out of 548 instances, the model correctly classified 496 as "negative" cases, indicative of a healthy thyroid status. However, it exhibited some difficulty in identifying "sick" cases, with 18 false-negative predictions.Conversely, the model correctly predicted 20 "sick" cases but also misclassified 14 "negative" cases as "sick".This highlights a tendency for the model to err on the side of caution, possibly leading to an increased number of false negatives. Further evaluation, including precision, recall, and F1-score analysis, is necessary for a comprehensive assessment of its predictive capabilities.\
+</p>
+
+
+<!----------- Plotting the all Confusion Matrix & Accuracy together ------------------->
+```{r,echo =FALSE,comment=NA, message=FALSE,eval=TRUE,warning=FALSE}
+
+print(paste("Accuracy of Random Forest: ",(round(accuracy_rf, digits = 4))))
+print(paste("Accuracy of XG Boost: ",(round(accuracy_xgb, digits = 4)))) 
+print(paste("Accuracy of Logistic Regression: ",(round(accuracy_log, digits = 4))))
+print(paste("Accuracy of Naive Bayes Classifier: ",(round(accuracy_NB, digits = 4))))
+print(paste("Accuracy of SVM: ",(round(accuracy_svm, digits = 4))))
+print(paste("Accuracy of Neural Network: ",(round(accuracy_NN, digits = 4))))
+
+
+```
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The accuracy of different machine learning models provides valuable insights into their performance on the classification task at hand. Among the models evaluated, the <strong>random Forest model</strong> stands out with an impressive accuracy of 99.09%. This exceptional accuracy underscores the model's capability to make accurate predictions, likely due to its ensemble approach and ability to handle complex datasets effectively.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Following closely behind is the XG Boost model, which achieved an accuracy of 98.18%. <strong>XG Boost</strong>, a gradient boosting algorithm, showcases its strength in improving model accuracy. While not surpassing Random Forest, it remains a highly competitive choice for accurate classification.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In contrast, the <strong>Logistic Regression model</strong> achieved an accuracy of 96.17%, demonstrating strong performance. Logistic Regression, a linear model, showcases that simplicity can still lead to accurate results, making it a viable option when interpretability and ease of implementation are priorities.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The <strong>Naive Bayes Classifier</strong> achieved an accuracy of 93.80%, showcasing its efficiency and simplicity. Despite slightly lower accuracy compared to the aforementioned models, Naive Bayes remains a suitable choice for quick classification tasks, particularly when dealing with limited data.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The <strong>Support Vector Machine (SVM) model</strong> achieved an accuracy of 95.99%. SVMs are known for their robust classification capabilities and strong mathematical foundation. While performing well, it falls just short of the accuracy achieved by Random Forest and XG Boost models.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Lastly, the <strong>Neural Network Model</strong> achieved an impressive accuracy of 94.16%, indicating its ability to correctly classify thyroid disease cases. However, a more comprehensive evaluation should consider additional metrics such as precision and recall to gain a deeper understanding of its predictive performance.\
+</p>
+
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In conclusion, the choice of the most appropriate machine learning model should take into account factors such as the nature of the dataset, available computational resources, and the importance of interpretability. Random Forest and XG Boost models demonstrated the highest accuracy, making them top contenders for tasks requiring precise classification. However, Logistic Regression, Naive Bayes, and SVM also showcased respectable performance and may be preferable under different circumstances.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:14pt">**4. Discussion**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+In the pursuit of improving the early and accurate diagnosis of thyroid diseases, this investigation harnesses the power of machine learning. Leveraging the "MLDataR" package in R and drawing upon data from the UCI Machine Learning repository, this study delves into the multifaceted realm of thyroid health.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Most variables exhibit a typical bell-shaped curve, indicative of a normal distribution, suggesting that data points tend to cluster around the mean. However, TSH and T3 values defy this trend, displaying positive skewness, signaling potential health conditions associated with abnormal levels. The gender variable's influence on thyroid sickness is not strong, but the proportion within each category offers insights. Other variable pairs show weaker correlations, but their inclusion in the model may enhance accuracy. No significant relationship with thyroid class, warranting its exclusion.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Most variables exhibit a typical bell-shaped curve, indicative of a normal distribution, suggesting that data points tend to cluster around the mean. However, TSH and T3 values defy this trend, displaying positive skewness, signaling potential health conditions associated with abnormal levels. The gender variable's influence on thyroid sickness is not strong, but the proportion within each category offers insights. Other variable pairs show weaker correlations, but their inclusion in the model may enhance accuracy. No significant relationship with thyroid class, warranting its exclusion.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The study employs various machine learning models, as depicted in Figure 4.1, with ROC curves showcasing their effectiveness in distinguishing thyroid classes. Notably, all models outperform the baseline, with Logistic Regression demonstrating relatively lower AUC.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+The Random Forest model excels in identifying "Negative" and "Sick" cases, boasting a 99.09% accuracy, followed closely by XG Boost at 98.18%. Logistic Regression achieves 96.17% accuracy.\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+Overall, these findings illuminate the potential of machine learning in thyroid disease diagnosis, with Random Forest emerging as a standout performer in accuracy, offering promising avenues for enhanced patient care.\
+</p>
+
+
+<!---- Reference -------------------------------------->
+
+<p style="font-family: timesNewRomen, serif; font-size:14pt">**4. References**</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+[Thyroid-Stimulating Hormone (TSH) Levels, Article by Cleveland Clinic](https://my.clevelandclinic.org/health/articles/23524-thyroid-stimulating-hormone-tsh-levels)\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+[Thyroid Data Description by R Package  Documentation](https://rdrr.io/github/StatsGary/MLDataR/man/thyroid_disease.html)\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+[Chi-Square test with mosaic plot for visualizations, Antoine Soetewey  (2020)](https://statsandr.com/blog/chi-square-test-of-independence-in-r/)\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+[Thyroid Disease EDA, Classification and Ensembling, Kaggle, Elijah Rona (2021)](https://www.kaggle.com/code/elijahrona/thyroid-disease-eda-classification-and-ensembling)\
+</p>
+
+<p style="font-family: timesNewRomen, serif; font-size:12pt;text-align: justify">
+[Confusion matrix with cvms, Ludvig Renbo Olsen (2023)](https://cran.r-project.org/web/packages/cvms/vignettes/Creating_a_confusion_matrix.html)\
+</p>
+
+<!-------------END--------------------------------------------------------------------->
