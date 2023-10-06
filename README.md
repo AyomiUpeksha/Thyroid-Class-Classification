@@ -1,7 +1,9 @@
 # Thyroid-Class-Classification
-Machine Learning for Thyroid Disease Prediction🏥🩺; A robust predictive model 💡💡💡
+**Machine Learning for Thyroid Disease Prediction**🏥🩺; A robust predictive model 💡💡💡
 
-<p><h3> 1. Hndling Class Balancing </h3>
+<p><h3> 1. Handling Class inBalancing </h3>
+<p>Negative = 2533 & Sick = 218 </p>
+- Oversampling/ Undersampling / BothSampling/ ROSE
 
 
 <p><h3> Supervised | Classification | R </h3>
@@ -12,3 +14,7 @@ Machine Learning for Thyroid Disease Prediction🏥🩺; A robust predictive mod
 - Naive Bayes Classifier
 - Support Vector Machine
 - FeedFoward Neural Network (FNN)
+
+<p><h3> References</h3>
+https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
+
