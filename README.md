@@ -4,7 +4,8 @@
 <p><h3> 1. Handling Class Inbalancing </h3>
 <p>Negative = 2533 & Sick = 218 </p>
 <li>Oversampling/ Undersampling / BothSampling/ ROSE</li>
-<img src="https://github.com/AyomiUpeksha/Revenue-Analysis-Dashboard/blob/main/assets/page_1.png" alt="Image Description">
+<p> </p>
+<img src="https://github.com/AyomiUpeksha/Thyroid-Class-Classification/blob/main/assets/Rplot_1.png" alt="Image Description" width="500" height="250">
 
 
 <p><h3> Supervised | Classification | R </h3>
