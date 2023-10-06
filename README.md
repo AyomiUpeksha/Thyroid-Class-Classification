@@ -1,9 +1,9 @@
 # Thyroid-Class-Classification
 **Machine Learning for Thyroid Disease Prediction**🏥🩺; A robust predictive model 💡💡💡
 
-<p><h3> 1. Handling Class inBalancing </h3>
+<p><h3> 1. Handling Class Inbalancing </h3>
 <p>Negative = 2533 & Sick = 218 </p>
-- Oversampling/ Undersampling / BothSampling/ ROSE
+<li>Oversampling/ Undersampling / BothSampling/ ROSE</li>
 
 
 <p><h3> Supervised | Classification | R </h3>
@@ -16,5 +16,5 @@
 - FeedFoward Neural Network (FNN)
 
 <p><h3> References</h3>
-https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
+<a href="https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/" target="_blank">Practical Guide to deal with Imbalanced Classification Problems in R</a>
 
