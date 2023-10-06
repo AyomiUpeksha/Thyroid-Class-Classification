@@ -1,6 +1,9 @@
 # Thyroid-Class-Classification
 Machine Learning for Thyroid Disease Prediction🏥🩺; A robust predictive model 💡💡💡
 
+<p><h3> 1. Hndling Class Balancing </h3>
+
+
 <p><h3> Supervised | Classification | R </h3>
   
 - Random Forest Model
