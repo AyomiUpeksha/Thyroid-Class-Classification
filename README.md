@@ -18,5 +18,6 @@
 - FeedFoward Neural Network (FNN)
 
 <p><h3> References</h3>
-<a href="https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/" target="_blank">Practical Guide to deal with Imbalanced Classification Problems in R</a>
+<a href="https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/" target="_blank">Practical Guide to deal with Imbalanced Classification Problems in R</a> </p>
+<a href="https://statsandr.com/blog/chi-square-test-of-independence-in-r/" target="_blank">Chi-square test of independence in R</a>
 
